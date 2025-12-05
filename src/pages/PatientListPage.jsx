@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api";
+import api, {authApi, journalApi} from "../api";
 
 function PatientListPage() {
     const [patients, setPatients] = useState([]);
@@ -9,7 +9,7 @@ function PatientListPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        api.get("/api/patients/all")
+        authApi.get("/users/role/PATIENT")
             .then(res => setPatients(res.data))
             .catch(err => setError("Failed to fetch patients"))
             .finally(() => setLoading(false));
@@ -26,10 +26,10 @@ function PatientListPage() {
             ) : (
                 <ul>
                     {patients.map(patient => (
-                        <li key={patient.id} style={{ marginBottom: "1rem" }}>
-                            <b>{patient.name}</b> - {patient.personalNumber} &nbsp;
+                        <li key={patient.email} style={{ marginBottom: "1rem" }}>
+                            <b>{patient.fullName}</b> - {patient.personalNumber} &nbsp;
                             <button
-                                onClick={() => navigate(`/patients/id/${patient.id}`)}
+                                onClick={() => navigate(`/patients/email/${patient.email}`)}
                                 style={{
                                     backgroundColor: "#007bff",
                                     color: "#fff",

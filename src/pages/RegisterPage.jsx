@@ -1,53 +1,38 @@
 import React, { useState } from "react";
-import api from "../publicApi"; // din axios instans
+import { authApi } from "../api";
 
 function RegisterPage() {
-    const [userType, setUserType] = useState("PATIENT");
+    const [role, setRole] = useState("PATIENT");
 
-    const [userForm, setUserForm] = useState({
+    const [form, setForm] = useState({
         email: "",
         password: "",
-    });
-
-    const [patientForm, setPatientForm] = useState({
-        name: "",
+        fullName: "",
         personalNumber: "",
-        dateOfBirth: "",
         address: "",
         phoneNumber: ""
     });
 
-    const [practitionerForm, setPractitionerForm] = useState({
-        name: "",
-        phoneNumber: "",
-        hospitalRole: "DOCTOR"
-    });
-
-    const handleChange = (e, formType) => {
+    const handleChange = (e) => {
         const { name, value } = e.target;
-        if (formType === "user") setUserForm({ ...userForm, [name]: value });
-        if (formType === "patient") setPatientForm({ ...patientForm, [name]: value });
-        if (formType === "practitioner") setPractitionerForm({ ...practitionerForm, [name]: value });
+        setForm(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleRegister = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const role = userType === "PATIENT" ? "PATIENT" : practitionerForm.hospitalRole;
-
         const payload = {
-            email: userForm.email,
-            password: userForm.password,
-            role,
-            name: userType === "PATIENT" ? patientForm.name : practitionerForm.name,
-            phoneNumber: userType === "PATIENT" ? patientForm.phoneNumber : practitionerForm.phoneNumber,
-            address: userType === "PATIENT" ? patientForm.address : null,
-            dateOfBirth: userType === "PATIENT" ? patientForm.dateOfBirth : null,
-            personalNumber: userType === "PATIENT" ? patientForm.personalNumber : null
+            email: form.email,
+            password: form.password,
+            fullName: form.fullName,
+            personalNumber: form.personalNumber,
+            address: form.address,
+            phoneNumber: form.phoneNumber,
+            role   // PATIENT, DOCTOR, NURSE etc
         };
 
         try {
-            await api.post("/api/auth/register", payload);
+            await authApi.post("/register", payload);
             alert("Registered! Please login.");
             window.location.href = "/login";
         } catch (err) {
@@ -59,52 +44,74 @@ function RegisterPage() {
     return (
         <div style={{ padding: "2rem" }}>
             <h1>Register</h1>
-            <form onSubmit={handleRegister}>
+
+            <form onSubmit={handleSubmit}>
+
+                {/* ROLE SELECTOR */}
                 <label>
-                    User Type:
-                    <select value={userType} onChange={(e) => setUserType(e.target.value)}>
+                    Role:
+                    <select value={role} onChange={(e) => setRole(e.target.value)}>
                         <option value="PATIENT">Patient</option>
-                        <option value="PRACTITIONER">Practitioner</option>
+                        <option value="DOCTOR">Doctor</option>
+                        <option value="NURSE">Nurse</option>
                     </select>
                 </label>
                 <br /><br />
 
+                {/* SHARED FIELDS */}
                 <input
                     name="email"
                     placeholder="Email"
-                    value={userForm.email}
-                    onChange={(e) => handleChange(e, "user")}
+                    value={form.email}
+                    onChange={handleChange}
                 /><br />
+
                 <input
                     name="password"
                     type="password"
                     placeholder="Password"
-                    value={userForm.password}
-                    onChange={(e) => handleChange(e, "user")}
+                    value={form.password}
+                    onChange={handleChange}
                 /><br />
 
-                {userType === "PATIENT" && (
+                <input
+                    name="fullName"
+                    placeholder="Full Name"
+                    value={form.fullName}
+                    onChange={handleChange}
+                /><br />
+
+                <input
+                    name="phoneNumber"
+                    placeholder="Phone Number"
+                    value={form.phoneNumber}
+                    onChange={handleChange}
+                /><br />
+
+                <input
+                    name="address"
+                    placeholder="Address"
+                    value={form.address}
+                    onChange={handleChange}
+                /><br />
+
+                {/* ONLY PATIENT FIELDS */}
+                {role === "PATIENT" && (
                     <>
-                        <input name="name" placeholder="Full Name" value={patientForm.name} onChange={(e) => handleChange(e, "patient")} /><br />
-                        <input name="personalNumber" placeholder="Personal Number" value={patientForm.personalNumber} onChange={(e) => handleChange(e, "patient")} /><br />
-                        <input name="dateOfBirth" type="date" value={patientForm.dateOfBirth} onChange={(e) => handleChange(e, "patient")} /><br />
-                        <input name="address" placeholder="Address" value={patientForm.address} onChange={(e) => handleChange(e, "patient")} /><br />
-                        <input name="phoneNumber" placeholder="Phone Number" value={patientForm.phoneNumber} onChange={(e) => handleChange(e, "patient")} /><br />
+                        <input
+                            name="personalNumber"
+                            placeholder="Personal Number"
+                            value={form.personalNumber}
+                            onChange={handleChange}
+                        /><br />
                     </>
                 )}
 
-                {userType === "PRACTITIONER" && (
-                    <>
-                        <input name="name" placeholder="Full Name" value={practitionerForm.name} onChange={(e) => handleChange(e, "practitioner")} /><br />
-                        <input name="phoneNumber" placeholder="Phone Number" value={practitionerForm.phoneNumber} onChange={(e) => handleChange(e, "practitioner")} /><br />
-                        <label>
-                            Hospital Role:
-                            <select name="hospitalRole" value={practitionerForm.hospitalRole} onChange={(e) => handleChange(e, "practitioner")}>
-                                <option value="DOCTOR">Doctor</option>
-                                <option value="NURSE">Nurse</option>
-                            </select>
-                        </label><br />
-                    </>
+                {/* PRACTITIONERS DO NOT NEED PERSONALNUMBER */}
+                {role !== "PATIENT" && (
+                    <p style={{ fontStyle: "italic", color: "#777" }}>
+                        Personal number is only required for patients.
+                    </p>
                 )}
 
                 <button type="submit">Register</button>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api";
+import { messageApi, authApi } from "../../api";
 
 function MessagesPage() {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -8,107 +8,69 @@ function MessagesPage() {
 
     const [conversations, setConversations] = useState([]);
     const [availableUsers, setAvailableUsers] = useState([]);
-    const [userMap, setUserMap] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     useEffect(() => {
-        api.get("/api/users")
-            .then(res => {
-                const map = {};
-                res.data.forEach(u => {
-                    map[u.id] = u.fullName || u.username || u.email;
-                });
-                setUserMap(map);
-            })
-            .catch(() => {});
-    }, []);
-
-    useEffect(() => {
-        if (!user?.id) return;
-
-        setLoading(true);
-        api.get(`/api/messages/all/${user.id}`)
-            .then(res => {
-                const grouped = groupByOtherUser(res.data, user.id);
-                setConversations(Object.values(grouped));
-            })
-            .catch(() => setError("Failed to fetch messages"))
-            .finally(() => setLoading(false));
-    }, [user?.id]);
-
-    useEffect(() => {
-        api.get("/api/users/available-to-message")
+        authApi.get("/users/all")
             .then(res => setAvailableUsers(res.data))
-            .catch(() => setError("Failed to fetch users to message"));
+            .catch(() => console.log("Could not load users"));
     }, []);
 
-    const goToConversation = (otherUser) => {
-        navigate(`/messages/${otherUser.id}`);
-    };
+    useEffect(() => {
+        if (!user?.email) return;
 
-    if (loading) return <p>Loading messages...</p>;
-    if (error) return <p style={{ color: "red" }}>{error}</p>;
+        messageApi.get("/all")
+            .then(res => {
+                const grouped = groupByOtherUser(res.data, user.email);
+                setConversations(Object.values(grouped));
+            });
+    }, [user?.email]);
+
+    const goToConversation = (otherUserEmail) => {
+        navigate(`/messages/${otherUserEmail}`);
+    };
 
     return (
         <div>
             <h1>Messages</h1>
 
-            {/* Existing conversations */}
-            {conversations.length > 0 && (
-                <>
-                    <h3>Your Conversations</h3>
-                    {conversations.map(c => (
-                        <div
-                            key={c.otherUser.id}
-                            onClick={() => goToConversation(c.otherUser)}
-                            style={{ cursor: "pointer", marginBottom: "0.5rem" }}
-                        >
-                            <b>{userMap[c.otherUser.id] || c.otherUser.id}</b>
-                            <span>: {c.messages[c.messages.length - 1]?.content}</span>
-                        </div>
-                    ))}
-                </>
-            )}
-
-            {/* Start new message */}
-            {availableUsers.length > 0 && (
-                <div style={{ marginTop: "1rem" }}>
-                    <h3>Start a Conversation</h3>
-                    {availableUsers.map(p => (
-                        <div
-                            key={p.id}
-                            onClick={() => goToConversation(p)}
-                            style={{ cursor: "pointer", marginBottom: "0.5rem" }}
-                        >
-                            {p.fullName || p.username || p.email}
-                        </div>
-                    ))}
+            <h3>Your Conversations</h3>
+            {conversations.map(c => (
+                <div
+                    key={c.otherUserEmail}
+                    onClick={() => goToConversation(c.otherUserEmail)}
+                    style={{ cursor: "pointer", marginBottom: "0.5rem" }}
+                >
+                    <b>{c.otherUserEmail}</b>: {c.messages[c.messages.length - 1]?.message}
                 </div>
-            )}
+            ))}
+
+            <h3>Start New</h3>
+            {availableUsers
+                .filter(u => u.email !== user.email)
+                .map(u => (
+                    <div
+                        key={u.email}
+                        onClick={() => goToConversation(u.email)}
+                        style={{ cursor: "pointer" }}
+                    >
+                        {u.fullName || u.email}
+                    </div>
+                ))}
         </div>
     );
 }
 
-function groupByOtherUser(messages, currentUserId) {
+function groupByOtherUser(messages, currentUserEmail) {
     const groups = {};
 
     messages.forEach(msg => {
-        if (!msg || !msg.sender || !msg.recipient) return;
+        const otherEmail =
+            msg.senderEmail === currentUserEmail ? msg.receiverEmail : msg.senderEmail;
 
-        const other =
-            msg.sender.id === currentUserId ? msg.recipient : msg.sender;
-
-        if (!other || !other.id) return;
-
-        if (!groups[other.id]) {
-            groups[other.id] = {
-                otherUser: other,
-                messages: []
-            };
+        if (!groups[otherEmail]) {
+            groups[otherEmail] = { otherUserEmail: otherEmail, messages: [] };
         }
-
-        groups[other.id].messages.push(msg);
+        groups[otherEmail].messages.push(msg);
     });
 
     return groups;

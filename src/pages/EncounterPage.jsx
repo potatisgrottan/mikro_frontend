@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import api from "../api";
+import api, {journalApi} from "../api";
 
-function EncounterPage({ patientId }) {
+function EncounterPage({ patientEmail }) {
   const [form, setForm] = useState({ location: "", dateOfEncounter: "" });
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -9,10 +9,10 @@ function EncounterPage({ patientId }) {
 const handleSubmit = async (e) => {
   e.preventDefault();
 
-  const practitionerId = JSON.parse(localStorage.getItem("user")).id;
+  const practitionerEmail = JSON.parse(localStorage.getItem("user")).email;
 
-  await api.post(
-    `/api/encounters?patientId=${patientId}&userId=${practitionerId}&location=${form.location}`
+  await journalApi.post(
+    `/encounters?patientEmail=${patientEmail}&userEmail=${practitionerEmail}&location=${form.location}`
   );
 
   alert("Encounter added!");

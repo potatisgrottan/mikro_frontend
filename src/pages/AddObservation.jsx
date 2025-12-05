@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import api from "../api";
+import api, {journalApi} from "../api";
 
 function AddObservationPage() {
     const { encounterId } = useParams();
@@ -11,7 +11,7 @@ function AddObservationPage() {
 const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        await api.post(`/api/observations/${encounterId}/observations`, {
+        await journalApi.post(`/observations/${encounterId}/observations`, {
             observationText: form.observationText
         });
         alert("Observation added!");

@@ -34,7 +34,7 @@ function App() {
                         }
                     />
                     <Route
-                        path="/patients/id/:id"
+                        path="/patients/email/:email"
                         element={
                             <PrivateRoute roles={["DOCTOR","NURSE"]}>
                                 <PatientDetailPage />

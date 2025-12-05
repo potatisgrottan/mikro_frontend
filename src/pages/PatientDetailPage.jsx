@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../api";
+import api, {journalApi} from "../api";
 
 function PatientDetailPage() {
-    const { id } = useParams(); 
+    const { email } = useParams();
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user")); 
     const canEdit = ["DOCTOR", "NURSE"].includes(user?.role);
@@ -16,10 +16,10 @@ function PatientDetailPage() {
     useEffect(() => {
         const fetchOverview = async () => {
             try {
-                const patientRes = await api.get(`/api/patients/id/${id}`);
+                const patientRes = await journalApi.get(`patients/email/${email}`);
                 setPatient(patientRes.data);
 
-                const overviewRes = await api.get(`/api/patients/${id}/overview`);
+                const overviewRes = await journalApi.get(`encounters/doctor/${user.email}/patient/${email}/overview`);
                 setOverview({
                     encounters: overviewRes.data.encounters || [],
                     observations: overviewRes.data.observations || []
@@ -32,7 +32,7 @@ function PatientDetailPage() {
             }
         };
         fetchOverview();
-    }, [id]);
+    }, [email]);
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
@@ -42,13 +42,12 @@ function PatientDetailPage() {
         <div style={{ padding: "2rem" }}>
             <h1>{patient.name || "No Name"}</h1>
             <p>Personal Number: {patient.personalNumber || "N/A"}</p>
-            <p>Date of Birth: {patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString() : "N/A"}</p>
             <p>Address: {patient.address || "N/A"}</p>
             <p>Phone: {patient.phoneNumber || "N/A"}</p>
 
             {canEdit && (
                 <button
-                    onClick={() => navigate(`/patients/${id}/add-encounter`)}
+                    onClick={() => navigate(`/encounters/make`)}
                     style={{ margin: "1rem 0" }}
                 >
                     Add Encounter

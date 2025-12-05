@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../api";
+import api, {authApi} from "../api";
 
 function LoginPage() {
     const [email, setEmail] = useState("");
@@ -7,16 +7,14 @@ function LoginPage() {
 
     const handleLogin = async () => {
         try {
-            const token = btoa(`${email}:${password}`);
-
-            const response = await api.get("/api/auth/me", {
-                headers: {
-                    "Authorization": `Basic ${token}`
-                }
+            const response = await authApi.post("/login", {
+                email,
+                password
             });
 
             const user = response.data;
 
+            const token = btoa(`${email}:${password}`);
             localStorage.setItem("token", token);
             localStorage.setItem("user", JSON.stringify(user));
 
@@ -24,7 +22,7 @@ function LoginPage() {
                 window.location.href = "/messages";
             } else if (user.role === "DOCTOR" || user.role === "NURSE") {
                 window.location.href = "/patients";
-            }else {
+            } else {
                 alert("Unknown role: " + user.role);
             }
 

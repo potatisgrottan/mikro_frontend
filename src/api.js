@@ -1,21 +1,24 @@
+// src/api.js
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: "http://localhost:8080",
-});
+const AUTH_URL = "http://localhost:8081/api/auth";
+const JOURNAL_URL = "http://localhost:8082/api";
+const MESSAGE_URL = "http://localhost:8083/api/messages";
 
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Basic ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+function createClient(baseURL) {
+    const client = axios.create({ baseURL });
 
+    client.interceptors.request.use((config) => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            config.headers.Authorization = `Basic ${token}`;
+        }
+        return config;
+    });
 
-export default api;
+    return client;
+}
+
+export const authApi = createClient(AUTH_URL);
+export const journalApi = createClient(JOURNAL_URL);
+export const messageApi = createClient(MESSAGE_URL);

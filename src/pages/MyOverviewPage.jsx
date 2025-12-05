@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import api from "../api";
+import api, {journalApi} from "../api";
 
 function MyOverviewPage() {
     const [overview, setOverview] = useState({ patient: null, encounters: [], observations: [] });
@@ -9,7 +9,7 @@ function MyOverviewPage() {
     useEffect(() => {
         const fetchOverview = async () => {
             try {
-                const res = await api.get("/api/patients/me");
+                const res = await journalApi.get("/me");
                 setOverview(res.data);
             } catch (err) {
                 console.error(err);
