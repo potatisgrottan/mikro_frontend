@@ -59,7 +59,7 @@ function App() {
                         }
                     />
                     <Route
-                        path="/messages/:userId"
+                        path="/messages/:userEmail"
                         element={
                             <PrivateRoute roles={["PATIENT","DOCTOR","NURSE"]}>
                                 <ConversationPage />
@@ -67,7 +67,7 @@ function App() {
                         }
                     />
 <Route
-  path="/patients/:patientId/add-encounter"
+  path="/patients/:patientEmail/add-encounter"
   element={
       <PrivateRoute roles={["DOCTOR","NURSE"]}>
           <EncounterPageWrapper />

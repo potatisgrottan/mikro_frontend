@@ -6,17 +6,21 @@ function EncounterPage({ patientEmail }) {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-  const practitionerEmail = JSON.parse(localStorage.getItem("user")).email;
+        const practitionerEmail = JSON.parse(localStorage.getItem("user")).email;
 
-  await journalApi.post(
-    `/encounters?patientEmail=${patientEmail}&userEmail=${practitionerEmail}&location=${form.location}`
-  );
+        await journalApi.post(`/encounters/make`, {
+            patientEmail,
+            practitionerEmail,
+            location: form.location,
+            dateOfEncounter: form.dateOfEncounter ? new Date(form.dateOfEncounter) : new Date()
+        });
 
-  alert("Encounter added!");
-};
+        alert("Encounter added!");
+    };
+
 
   return (
     <form onSubmit={handleSubmit}>

@@ -1,29 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api, {journalApi} from "../api";
+import { journalApi } from "../api";
 
 function PatientDetailPage() {
     const { email } = useParams();
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem("user")); 
+    const user = JSON.parse(localStorage.getItem("user"));
     const canEdit = ["DOCTOR", "NURSE"].includes(user?.role);
 
     const [patient, setPatient] = useState(null);
-    const [overview, setOverview] = useState({ encounters: [], observations: [] });
+    const [encounters, setEncounters] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchOverview = async () => {
             try {
-                const patientRes = await journalApi.get(`patients/email/${email}`);
+                // 1. Load patient
+                const patientRes = await journalApi.get(`/patients/email/${email}`);
                 setPatient(patientRes.data);
 
-                const overviewRes = await journalApi.get(`encounters/doctor/${user.email}/patient/${email}/overview`);
-                setOverview({
-                    encounters: overviewRes.data.encounters || [],
-                    observations: overviewRes.data.observations || []
-                });
+                // 2. Load encounter + observation overview
+                const overviewRes = await journalApi.get(`/encounters/patient/${email}/overview`);
+                setEncounters(overviewRes.data);
+
             } catch (err) {
                 console.error(err);
                 setError("Failed to fetch patient data");
@@ -31,6 +31,7 @@ function PatientDetailPage() {
                 setLoading(false);
             }
         };
+
         fetchOverview();
     }, [email]);
 
@@ -55,13 +56,19 @@ function PatientDetailPage() {
             )}
 
             <h2>Encounters</h2>
-            {overview.encounters.length === 0 ? (
+
+            {encounters.length === 0 ? (
                 <p>No encounters found.</p>
             ) : (
                 <ul>
-                    {overview.encounters.map((e) => (
-                        <li key={e.id} style={{ marginBottom: "0.5rem" }}>
-                            {e.dateOfEncounter ? new Date(e.dateOfEncounter).toLocaleDateString() : "No Date"} - {e.location || "No Location"}
+                    {encounters.map((e) => (
+                        <li key={e.id} style={{ marginBottom: "1rem" }}>
+                            {e.dateOfEncounter
+                                ? new Date(e.dateOfEncounter).toLocaleDateString()
+                                : "No Date"
+                            }
+                            {" - "}
+                            {e.location || "No Location"}
 
                             {canEdit && (
                                 <button
@@ -72,12 +79,17 @@ function PatientDetailPage() {
                                 </button>
                             )}
 
+                            {/* Observations */}
                             <ul style={{ marginTop: "0.5rem" }}>
-                                {overview.observations
-                                    .filter(o => o.encounterId === e.id)
-                                    .map(o => (
-                                        <li key={o.id}>{o.observationText || "No Observation"}</li>
-                                    ))}
+                                {e.observations?.length > 0 ? (
+                                    e.observations.map((o) => (
+                                        <li key={o.id}>
+                                            {o.observationText || "No Observation"}
+                                        </li>
+                                    ))
+                                ) : (
+                                    <li>No observations</li>
+                                )}
                             </ul>
                         </li>
                     ))}

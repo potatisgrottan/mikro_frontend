@@ -4,25 +4,30 @@ import { messageApi } from "../../api";
 
 function ConversationPage() {
     const { userEmail } = useParams();
-    const currentUser = JSON.parse(localStorage.getItem("user"));
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState("");
+    const token = localStorage.getItem("token");
+
+
 
     useEffect(() => {
-        messageApi.get(`/conversation/${currentUser.email}/${userEmail}`)
+        if (!userEmail) return;
+
+        messageApi.get(`/conversation/${userEmail}`)
             .then(res => setMessages(res.data))
             .catch(err => console.error("Failed to fetch conversation", err));
-    }, [currentUser.email, userEmail]);
+    }, [userEmail]);
 
     const sendMessage = () => {
-        messageApi.post("/api/messages", {
-            senderEmail: currentUser.email,
+        if (!text.trim()) return;
+
+        messageApi.post("/send", {
             receiverEmail: userEmail,
-            message: text
+            content: text
         }).then(res => {
             setMessages([...messages, res.data]);
             setText("");
-        });
+        }).catch(err => console.error("Failed to send message", err));
     };
 
     return (

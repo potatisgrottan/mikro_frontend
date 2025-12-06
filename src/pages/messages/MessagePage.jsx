@@ -6,24 +6,32 @@ function MessagesPage() {
     const user = JSON.parse(localStorage.getItem("user"));
     const navigate = useNavigate();
 
+    const token = localStorage.getItem("token");
+    const headers = { Authorization: token };
+
+
     const [conversations, setConversations] = useState([]);
     const [availableUsers, setAvailableUsers] = useState([]);
 
     useEffect(() => {
-        authApi.get("/users/all")
+        if (!user?.email) return;
+
+        messageApi.get("/users/available-to-message", { headers })
             .then(res => setAvailableUsers(res.data))
             .catch(() => console.log("Could not load users"));
-    }, []);
+    }, [user?.email]);
 
     useEffect(() => {
         if (!user?.email) return;
 
-        messageApi.get("/all")
+        messageApi.get("/all", { headers })
             .then(res => {
                 const grouped = groupByOtherUser(res.data, user.email);
                 setConversations(Object.values(grouped));
-            });
+            })
+            .catch(err => console.log(err));
     }, [user?.email]);
+
 
     const goToConversation = (otherUserEmail) => {
         navigate(`/messages/${otherUserEmail}`);

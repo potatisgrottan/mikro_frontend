@@ -11,7 +11,7 @@ function AddObservationPage() {
 const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        await journalApi.post(`/observations/${encounterId}/observations`, {
+        await journalApi.post(`/encounters/${encounterId}/observations`, {
             observationText: form.observationText
         });
         alert("Observation added!");
