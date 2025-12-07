@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authApi, searchApi } from "../api"; // 🔑 Importera searchApi
+import { authApi, searchApi } from "../api"; // 1. Importera searchApi
 
 function PatientListPage() {
     const [patients, setPatients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [searchQuery, setSearchQuery] = useState(""); // 🔑 State för söktext
+    
+    // 2. State för söktexten
+    const [searchQuery, setSearchQuery] = useState(""); 
     
     const navigate = useNavigate();
 
-    // Funktion för att ladda ALLA patienter (från Auth Service)
+    // Ladda alla patienter (Default: Från Auth Service)
     const loadAllPatients = () => {
         setLoading(true);
         authApi.get("/users/role/PATIENT")
@@ -22,16 +24,15 @@ function PatientListPage() {
             .finally(() => setLoading(false));
     };
 
-    // Ladda alla vid start
     useEffect(() => {
         loadAllPatients();
     }, []);
 
-    // 🔑 Funktion för att SÖKA (från Quarkus Search Service)
+    // 3. Hantera Sökning (Anropar Quarkus Search Service)
     const handleSearch = async (e) => {
-        e.preventDefault(); // Förhindra att formuläret laddar om sidan
+        e.preventDefault();
         
-        // Om sökfältet är tomt, ladda alla igen
+        // Om sökfältet är tomt, ladda alla vanliga patienter igen
         if (!searchQuery.trim()) {
             loadAllPatients();
             return;
@@ -39,23 +40,26 @@ function PatientListPage() {
 
         setLoading(true);
         try {
-            // Anropa din Quarkus-tjänst: /api/search/patients?q=...
+            // Anropa: http://localhost:8084/api/search/patients?q=...
             const res = await searchApi.get(`/patients?q=${searchQuery}`);
             
-            // Mappa om datan så den passar din lista (Quarkus använder patientName, Auth använder fullName)
+            // 4. Mappa om datan från Search Service så den passar listan
+            // Search Service returnerar: { firstName, lastName, email, conditions }
+            // Denna vy förväntar sig: { fullName, email, personalNumber }
             const mappedResults = res.data.map(p => ({
                 ...p,
-                fullName: p.patientName, // Mappa om namnet
-                email: p.patientEmail,   // Mappa om e-posten
-                // personalNumber kanske saknas i sökindexet om du inte la till det, 
-                // men conditions finns!
+                fullName: `${p.firstName} ${p.lastName}`, // Slå ihop namnen
+                email: p.email,
+                // Eftersom vi kör proxy mot Auth, kanske personalNumber saknas i just Search-svaret
+                // om vi inte la till det i UserDto i Java. Vi hanterar det snyggt:
+                personalNumber: p.personalNumber || "Se detaljer" 
             }));
 
             setPatients(mappedResults);
             setError(null);
         } catch (err) {
             console.error(err);
-            setError("Search failed. Ensure Search Service is running.");
+            setError("Search failed. Is the Search Service running on port 8084?");
         } finally {
             setLoading(false);
         }
@@ -65,11 +69,11 @@ function PatientListPage() {
         <div style={{ padding: "2rem" }}>
             <h1>Patient List</h1>
 
-            {/* 🔑 SÖKFÄLT */}
+            {/* 5. SÖKFÄLT */}
             <form onSubmit={handleSearch} style={{ marginBottom: "2rem", display: "flex", gap: "10px" }}>
                 <input 
                     type="text" 
-                    placeholder="Search by name or condition (e.g. 'flu', 'broken')..." 
+                    placeholder="Search name or email..." 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{ padding: "10px", width: "300px", fontSize: "1rem" }}
@@ -86,32 +90,34 @@ function PatientListPage() {
                 </button>
             </form>
 
-            {/* ERROR HANTERING */}
+            {/* Error & Loading */}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {loading && <p>Loading...</p>}
 
-            {/* RESULTATLISTA */}
+            {/* Lista */}
             {!loading && patients.length === 0 ? (
                 <p>No patients found.</p>
             ) : (
                 <ul>
                     {patients.map((patient) => (
-                        <li key={patient.email || patient.patientEmail} style={{ marginBottom: "1rem", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>
+                        <li key={patient.email} style={{ marginBottom: "1rem", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <div>
                                     <span style={{ fontSize: "1.2rem", fontWeight: "bold" }}>
-                                        {patient.fullName || patient.patientName}
+                                        {patient.fullName}
                                     </span>
                                     
-                                    {/* Visa villkor/conditions om det kommer från söktjänsten */}
+                                    {/* Visa om det finns conditions (från söktjänsten) */}
                                     {patient.conditions && (
-                                        <div style={{ color: "green", fontSize: "0.9rem", marginTop: "5px" }}>
-                                            Found matching condition: <em>{patient.conditions}</em>
+                                        <div style={{ color: "green", fontSize: "0.9rem" }}>
+                                            Source: {patient.conditions}
                                         </div>
                                     )}
 
                                     <div style={{ color: "#666", fontSize: "0.9rem" }}>
-                                        {patient.personalNumber ? `PN: ${patient.personalNumber}` : `Email: ${patient.email}`}
+                                        {patient.personalNumber !== "Se detaljer" 
+                                            ? `${patient.personalNumber}` 
+                                            : patient.email}
                                     </div>
                                 </div>
 
