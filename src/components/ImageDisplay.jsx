@@ -1,17 +1,13 @@
 import React from 'react';
-import { imageApi } from '../api'; // Anta att imageApi bas-URL är http://localhost:3001
+import { imageApi } from '../api'; 
 
 function ImageDisplay({ imageId }) {
     if (!imageId) return null;
     
-
-    // Bygger den direkta URL:en för att hämta den råa bilden från Image Service
-    // Image Service URL är: http://localhost:3001/image/:id/raw
     const imageUrl = `${imageApi.defaults.baseURL}/image/${imageId}/raw`;
 
     console.log("Loading Image URL:", imageUrl);
 
-    // Vi använder img-taggen direkt mot API-endpointen
     return (
         <div style={{ marginTop: '10px' }}>
             <img 
