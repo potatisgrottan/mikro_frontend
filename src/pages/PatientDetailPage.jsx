@@ -40,7 +40,7 @@ function PatientDetailPage() {
 
     return (
         <div style={{ padding: "2rem" }}>
-            <h1>{patient.name || "No Name"}</h1>
+            <h1>{patient.fullName || "No Name"}</h1>
             <p>Personal Number: {patient.personalNumber || "N/A"}</p>
             <p>Address: {patient.address || "N/A"}</p>
             <p>Phone: {patient.phoneNumber || "N/A"}</p>
