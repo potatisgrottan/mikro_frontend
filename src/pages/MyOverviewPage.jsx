@@ -1,53 +1,75 @@
 import React, { useEffect, useState } from "react";
-import api, {journalApi} from "../api";
+import { journalApi } from "../api";
 
 function MyOverviewPage() {
-    const [overview, setOverview] = useState({ patient: null, encounters: [], observations: [] });
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+
+    const [patient, setPatient] = useState(null);
+    const [encounters, setEncounters] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchOverview = async () => {
+        const fetchData = async () => {
             try {
-                const res = await journalApi.get("/me");
-                setOverview(res.data);
+                // 1. Load patient profile (same as PatientDetailPage)
+                const patientRes = await journalApi.get(`/patients/email/${currentUser.email}`);
+                setPatient(patientRes.data);
+
+                // 2. Load encounters + observations bundle
+                const overviewRes = await journalApi.get(
+                    `/encounters/patient/${currentUser.email}/overview`
+                );
+
+                setEncounters(overviewRes.data); // IDENTICAL to PatientDetailPage
+
             } catch (err) {
                 console.error(err);
-                setError("Failed to fetch data");
+                setError("Failed to load your medical overview");
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchOverview();
-    }, []);
+        fetchData();
+    }, [currentUser.email]);
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
-    if (!overview.patient) return <p>No patient data found</p>;
-
-    const { patient, encounters, observations } = overview;
+    if (!patient) return <p>No patient data found</p>;
 
     return (
         <div style={{ padding: "2rem" }}>
-            <h1>Welcome, {patient.name}</h1>
+            <h1>{patient.name || "No Name"}</h1>
             <p>Personal Number: {patient.personalNumber || "N/A"}</p>
-            <p>Date of Birth: {patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString() : "N/A"}</p>
             <p>Address: {patient.address || "N/A"}</p>
             <p>Phone: {patient.phoneNumber || "N/A"}</p>
 
-            <h2>Encounters</h2>
+            <h2>Your Encounters</h2>
+
             {encounters.length === 0 ? (
                 <p>No encounters found.</p>
             ) : (
                 <ul>
-                    {encounters.map(e => (
-                        <li key={e.id}>
-                            {e.dateOfEncounter ? new Date(e.dateOfEncounter).toLocaleDateString() : "No Date"} - {e.location || "No Location"}
-                            <ul>
-                                {observations.filter(o => o.encounterId === e.id).map(o => (
-                                    <li key={o.id}>{o.observationText || "No Observation"}</li>
-                                ))}
+                    {encounters.map((e) => (
+                        <li key={e.id} style={{ marginBottom: "1rem" }}>
+                            {e.dateOfEncounter
+                                ? new Date(e.dateOfEncounter).toLocaleDateString()
+                                : "No Date"}
+                            {" - "}
+                            {e.location || "No Location"}
+
+                            {/* Observations */}
+                            <ul style={{ marginTop: "0.5rem" }}>
+                                {e.observations?.length > 0 ? (
+                                    e.observations.map((o) => (
+                                        <li key={o.id}>
+                                            {o.observationText || "No Observation"}
+                                        </li>
+                                    ))
+                                ) : (
+                                    <li>No observations</li>
+                                )}
                             </ul>
                         </li>
                     ))}
