@@ -10,7 +10,6 @@ import HomePage from "./pages/HomePage";
 import Layout from "./layouts/Layout";
 import PrivateRoute from "./components/PrivateRoute";
 import MyOverviewPage from "./pages/MyOverviewPage";
-import EncounterPage from "./pages/EncounterPage";
 import AddObservationPage from "./pages/AddObservation";
 import EncounterPageWrapper from "./pages/EncounterPageWrapper";
 
@@ -28,7 +27,7 @@ function App() {
                     <Route
                         path="/patients"
                         element={
-                            <PrivateRoute roles={["DOCTOR","NURSE"]}>
+                            <PrivateRoute roles={["DOCTOR", "NURSE"]}>
                                 <PatientListPage />
                             </PrivateRoute>
                         }
@@ -36,11 +35,20 @@ function App() {
                     <Route
                         path="/patients/email/:email"
                         element={
-                            <PrivateRoute roles={["DOCTOR","NURSE"]}>
+                            <PrivateRoute roles={["DOCTOR", "NURSE"]}>
                                 <PatientDetailPage />
                             </PrivateRoute>
                         }
                     />
+                    <Route
+                        path="/patients/:patientEmail/add-encounter"
+                        element={
+                            <PrivateRoute roles={["DOCTOR", "NURSE"]}>
+                                <EncounterPageWrapper />
+                            </PrivateRoute>
+                        }
+                    />
+
                     {/* Patient egen översikt */}
                     <Route
                         path="/my-overview"
@@ -50,10 +58,12 @@ function App() {
                             </PrivateRoute>
                         }
                     />
+
+                    {/* Messages */}
                     <Route
                         path="/messages"
                         element={
-                            <PrivateRoute roles={["PATIENT","DOCTOR","NURSE"]}>
+                            <PrivateRoute roles={["PATIENT", "DOCTOR", "NURSE"]}>
                                 <MessagePage />
                             </PrivateRoute>
                         }
@@ -61,24 +71,17 @@ function App() {
                     <Route
                         path="/messages/:userEmail"
                         element={
-                            <PrivateRoute roles={["PATIENT","DOCTOR","NURSE"]}>
+                            <PrivateRoute roles={["PATIENT", "DOCTOR", "NURSE"]}>
                                 <ConversationPage />
                             </PrivateRoute>
                         }
                     />
-<Route
-  path="/patients/:patientEmail/add-encounter"
-  element={
-      <PrivateRoute roles={["DOCTOR","NURSE"]}>
-          <EncounterPageWrapper />
-      </PrivateRoute>
-  }
-/>
 
+                    {/* Add Observation */}
                     <Route
                         path="/encounters/:encounterId/add-observation"
                         element={
-                            <PrivateRoute roles={["DOCTOR","NURSE"]}>
+                            <PrivateRoute roles={["DOCTOR", "NURSE"]}>
                                 <AddObservationPage />
                             </PrivateRoute>
                         }
@@ -90,5 +93,3 @@ function App() {
 }
 
 export default App;
-
-
