@@ -1,11 +1,15 @@
 // src/api.js
 import axios from "axios";
 
-const AUTH_URL = "http://localhost:8081/api/auth";
-const JOURNAL_URL = "http://localhost:8082/api";
-const MESSAGE_URL = "http://localhost:8083/api/messages";
-const SEARCH_URL = "http://localhost:8084/api/search";
-const IMAGE_URL = "http://localhost:3001";
+const AUTH_URL = "https://auth-servicea.app.cloud.cbh.kth.se/api/auth";
+
+const JOURNAL_URL = "https://journal-servicea.app.cloud.cbh.kth.se/api";
+
+const MESSAGE_URL = "https://message-servicea.app.cloud.cbh.kth.se/api/messages";
+
+const IMAGE_URL = "https://image-servicea.app.cloud.cbh.kth.se";
+
+const SEARCH_URL = "https://search-servicea.app.cloud.cbh.kth.se/api/search";
 /*
 url för k8
 VITE_AUTH_URL=http://auth-service:8080/api/auth
