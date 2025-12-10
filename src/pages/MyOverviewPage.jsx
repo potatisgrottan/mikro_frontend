@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { journalApi } from "../api";
+import ImageDisplay from "../components/ImageDisplay";
 
 function MyOverviewPage() {
     const currentUser = JSON.parse(localStorage.getItem("user"));
@@ -12,16 +13,14 @@ function MyOverviewPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Load patient profile (same as PatientDetailPage)
                 const patientRes = await journalApi.get(`/patients/email/${currentUser.email}`);
                 setPatient(patientRes.data);
 
-                // 2. Load encounters + observations bundle
                 const overviewRes = await journalApi.get(
                     `/encounters/patient/${currentUser.email}/overview`
                 );
 
-                setEncounters(overviewRes.data); // IDENTICAL to PatientDetailPage
+                setEncounters(overviewRes.data);
 
             } catch (err) {
                 console.error(err);
@@ -52,19 +51,28 @@ function MyOverviewPage() {
             ) : (
                 <ul>
                     {encounters.map((e) => (
-                        <li key={e.id} style={{ marginBottom: "1rem" }}>
-                            {e.dateOfEncounter
-                                ? new Date(e.dateOfEncounter).toLocaleDateString()
-                                : "No Date"}
+                        <li key={e.id} style={{ marginBottom: "1rem", borderBottom: "1px solid #ccc", paddingBottom: "1rem" }}>
+                            <strong>
+                                {e.dateOfEncounter
+                                    ? new Date(e.dateOfEncounter).toLocaleDateString()
+                                    : "No Date"}
+                            </strong>
                             {" - "}
                             {e.location || "No Location"}
 
                             {/* Observations */}
-                            <ul style={{ marginTop: "0.5rem" }}>
+                            <ul style={{ marginTop: "0.5rem", listStyle: "none", paddingLeft: "10px" }}>
                                 {e.observations?.length > 0 ? (
                                     e.observations.map((o) => (
-                                        <li key={o.id}>
-                                            {o.observationText || "No Observation"}
+                                        <li key={o.id} style={{ marginBottom: "10px" }}>
+                                            <p>{o.observationText || "No Observation"}</p>
+
+                                            {/* 2. LÄGG TILL BILDVISNING HÄR */}
+                                            {o.imageId && (
+                                                <div style={{ marginTop: "5px" }}>
+                                                    <ImageDisplay imageId={o.imageId} />
+                                                </div>
+                                            )}
                                         </li>
                                     ))
                                 ) : (
