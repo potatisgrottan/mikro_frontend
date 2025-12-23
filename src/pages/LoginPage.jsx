@@ -1,52 +1,37 @@
-import React, { useState } from "react";
-import api, {authApi} from "../api";
+// src/pages/LoginPage.jsx
+import React, { useEffect } from "react";
+import { useAuth } from "react-oidc-context";
+import { useNavigate } from "react-router-dom";
 
 function LoginPage() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const auth = useAuth();
+    const navigate = useNavigate();
 
-    const handleLogin = async () => {
-        try {
-            const response = await authApi.post("/login", {
-                email,
-                password
-            });
-
-            const user = response.data;
-
-            const token = btoa(`${email}:${password}`);
-            localStorage.setItem("token", token);
-            localStorage.setItem("user", JSON.stringify(user));
-
-            if (user.role === "PATIENT") {
-                window.location.href = "/messages";
-            } else if (user.role === "DOCTOR" || user.role === "NURSE") {
-                window.location.href = "/patients";
-            } else {
-                alert("Unknown role: " + user.role);
-            }
-
-        } catch (err) {
-            console.error(err);
-            alert("Invalid credentials");
+    useEffect(() => {
+        // Redirecta direkt om man redan är inloggad
+        if (auth.isAuthenticated) {
+            navigate("/");
         }
-    };
+    }, [auth.isAuthenticated, navigate]);
+
+    // Automatisk redirect (Valfritt):
+    // Om du vill slippa trycka på knappen och skickas direkt till Keycloak,
+    // avkommentera raden nedan:
+    // useEffect(() => { auth.signinRedirect(); }, []);
 
     return (
-        <div style={{ padding: "2rem" }}>
-            <h1>Login</h1>
-            <input
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
-            <button onClick={handleLogin}>Login</button>
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+            <div className="bg-white p-10 rounded-2xl shadow-xl border border-gray-100 max-w-md w-full text-center">
+                <h1 className="text-3xl font-bold text-slate-800 mb-4">MediTrack</h1>
+                <p className="text-slate-500 mb-8">Secure Journal System</p>
+
+                <button
+                    onClick={() => auth.signinRedirect()}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-md"
+                >
+                    Log in with Keycloak
+                </button>
+            </div>
         </div>
     );
 }

@@ -1,113 +1,71 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useAuth } from "react-oidc-context";
 
 function Navbar() {
-  const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+    const auth = useAuth();
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
+    const username = auth.user?.profile?.preferred_username || auth.user?.profile?.email;
+    const userRoles = auth.user?.profile?.realm_access?.roles || [];
 
-  return (
-    <nav
-      style={{
-        backgroundColor: "#fff",
-        borderBottom: "1px solid #ddd",
-        padding: "1rem 2rem",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
-      }}
-    >
-      {/* Left side */}
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        <Link
-          to="/"
-          style={{
-            fontWeight: "bold",
-            fontSize: "1.2rem",
-            color: "#007bff",
-            textDecoration: "none",
-          }}
-        >
-          MediTrack
-        </Link>
+    const isPatient = userRoles.map(r => r.toUpperCase()).includes("PATIENT");
+    const isStaff = userRoles.map(r => r.toUpperCase()).some(r => ["DOCTOR", "NURSE"].includes(r));
 
-        {token && (
-          <>
-            <Link
-              to="/patients"
-              style={{ textDecoration: "none", color: "#333" }}
-            >
-              Patients
-            </Link>
-            <Link
-              to="/messages"
-              style={{ textDecoration: "none", color: "#333" }}
-            >
-              Messages
-            </Link>
-          </>
-        )}
-      </div>
+    const handleLogout = () => {
+        auth.removeUser();
+        auth.signoutRedirect();
+    };
 
-      {/* Right side */}
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        {token ? (
-          <>
-            {user && <span style={{ color: "#555" }}>Hi, {user.username}</span>}
+    return (
+        <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+            {/* Vänster sida */}
+            <div className="flex items-center gap-6">
+                <Link to="/" className="text-2xl font-bold text-blue-600 tracking-tight hover:text-blue-700 transition">
+                    MediTrack
+                </Link>
 
-            {/* Info button only for patients */}
-            {user?.role === "PATIENT" && (
-              <button
-                onClick={() => navigate("/my-overview")}
-                style={{
-                  backgroundColor: "#007bff",
-                  color: "#fff",
-                  border: "none",
-                  padding: "0.4rem 0.8rem",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                Info
-              </button>
-            )}
+                {auth.isAuthenticated && (
+                    <div className="hidden md:flex gap-4">
+                        {isStaff && (
+                            <Link to="/patients" className="text-slate-600 hover:text-blue-600 font-medium transition">Patients</Link>
+                        )}
+                        <Link to="/messages" className="text-slate-600 hover:text-blue-600 font-medium transition">Messages</Link>
+                    </div>
+                )}
+            </div>
 
-            <button
-              onClick={handleLogout}
-              style={{
-                backgroundColor: "#dc3545",
-                color: "#fff",
-                border: "none",
-                padding: "0.4rem 0.8rem",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <Link to="/login" style={{ textDecoration: "none", color: "#007bff" }}>
-              Login
-            </Link>
-            <Link to="/register" style={{ textDecoration: "none", color: "#007bff" }}>
-              Register
-            </Link>
-          </>
-        )}
-      </div>
-    </nav>
-  );
+            {/* Höger sida */}
+            <div className="flex items-center gap-4">
+                {auth.isAuthenticated ? (
+                    <>
+            <span className="hidden sm:inline text-slate-500 text-sm font-medium">
+                {username}
+            </span>
+
+                        {isPatient && (
+                            <Link to="/my-overview" className="btn-primary text-sm">
+                                My Journal
+                            </Link>
+                        )}
+
+                        <button
+                            onClick={handleLogout}
+                            className="text-red-600 hover:text-red-700 font-medium text-sm border border-red-100 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition"
+                        >
+                            Logout
+                        </button>
+                    </>
+                ) : (
+                    <button
+                        onClick={() => auth.signinRedirect()}
+                        className="btn-primary"
+                    >
+                        Login
+                    </button>
+                )}
+            </div>
+        </nav>
+    );
 }
 
 export default Navbar;
