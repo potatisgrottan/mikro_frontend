@@ -1,6 +1,6 @@
 import axios from "axios";
 import { User } from "oidc-client-ts";
-/*
+
 const AUTH_URL = "https://auth-servicea.app.cloud.cbh.kth.se/api/auth";
 
 const JOURNAL_URL = "https://journal-servicea.app.cloud.cbh.kth.se/api";
@@ -10,18 +10,10 @@ const MESSAGE_URL = "https://message-servicea.app.cloud.cbh.kth.se/api/messages"
 const IMAGE_URL = "https://image-servicea.app.cloud.cbh.kth.se";
 
 const SEARCH_URL = "https://search-servicea.app.cloud.cbh.kth.se/api/search";
-live urlr
-*/
-// URL:er (samma som förut)
-const AUTH_URL = "http://localhost:8081/api/auth"; // Peka på din nya UserProfile Service
-const JOURNAL_URL = "http://localhost:8082/api";
-const MESSAGE_URL = "http://localhost:8083/api/messages";
-const SEARCH_URL = "http://localhost:8084/api/search";
-// const IMAGE_URL...
 
 // Hjälpfunktion för att hämta token från OIDC-lagringen
 function getAccessToken() {
-    const oidcStorage = sessionStorage.getItem(`oidc.user:http://localhost:8080/realms/hospital-realm:hospital-app`);
+    const oidcStorage = sessionStorage.getItem(`oidc.user:http://keycloaka.app.cloud.cbh.kth.se/realms/hospital-realm:hospital-app`);
     if (!oidcStorage) {
         return null;
     }

@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import { AuthProvider } from "react-oidc-context";
 const oidcConfig = {
-    authority: "http://localhost:8080/realms/hospital-realm",
+    authority: "http://keycloaka.app.cloud.cbh.kth.se/realms/hospital-realm",
     client_id: "hospital-app",
     redirect_uri: window.location.origin,
     onSigninCallback: () => {
