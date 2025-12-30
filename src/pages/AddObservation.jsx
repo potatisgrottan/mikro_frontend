@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import { useParams } from "react-router-dom";
 import { journalApi, imageApi } from "../api"; 
 
@@ -6,8 +6,7 @@ function AddObservationPage() {
     const { encounterId } = useParams();
     
     const [form, setForm] = useState({ observationText: "" }); 
-    
-    const [selectedFile, setSelectedFile] = useState(null); 
+
     const [imageId, setImageId] = useState(null); 
     const [previewUrl, setPreviewUrl] = useState(null); 
 
@@ -118,20 +117,15 @@ function AddObservationPage() {
                 disabled={imageUploading}
             />
             {imageUploading && <p>Uploading image...</p>}
-
-            {/* 3. FÖRHANDSGRANSKNING OCH REDIGERING */}
             {previewUrl && (
                 <div style={{ marginTop: '15px', border: '1px solid #ccc', padding: '10px' }}>
                     <h3>Image Preview & Edit:</h3>
                     
-                    {/* Bildvisning */}
-                    <img 
-                        src={previewUrl} 
+
+                    <img
                         alt="Image Preview" 
                         style={{ maxWidth: '100%', maxHeight: '400px', display: 'block' }} 
                     />
-                    
-                    {/* Redigeringskontroller */}
                     <div style={{ marginTop: '10px' }}>
                         <input
                             type="text"

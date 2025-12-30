@@ -1,36 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { messageApi, authApi } from "../../api";
+import { useAuth } from "react-oidc-context"; // <--- Hook
+import { messageApi } from "../../api";
 
 function MessagesPage() {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const auth = useAuth();
+    // Vi hämtar e-posten direkt här
+    const userEmail = auth.user?.profile?.email;
+
     const navigate = useNavigate();
-
-    const token = localStorage.getItem("token");
-    const headers = { Authorization: token };
-
 
     const [conversations, setConversations] = useState([]);
     const [availableUsers, setAvailableUsers] = useState([]);
 
     useEffect(() => {
-        if (!user?.email) return;
+        if (!userEmail) return;
 
-        messageApi.get("/users/available-to-message", { headers })
+        messageApi.get("/users/available-to-message")
             .then(res => setAvailableUsers(res.data))
             .catch(() => console.log("Could not load users"));
-    }, [user?.email]);
+    }, [userEmail, headers]);
 
     useEffect(() => {
-        if (!user?.email) return;
+        if (!userEmail) return;
 
-        messageApi.get("/all", { headers })
+        messageApi.get("/all")
             .then(res => {
-                const grouped = groupByOtherUser(res.data, user.email);
+                // Skicka med userEmail till grupperingsfunktionen
+                const grouped = groupByOtherUser(res.data, userEmail);
                 setConversations(Object.values(grouped));
             })
             .catch(err => console.log(err));
-    }, [user?.email]);
+    }, [userEmail, headers]);
 
 
     const goToConversation = (otherUserEmail) => {
@@ -54,7 +55,8 @@ function MessagesPage() {
 
             <h3>Start New</h3>
             {availableUsers
-                .filter(u => u.email !== user.email)
+                
+                .filter(u => u.email !== userEmail)
                 .map(u => (
                     <div
                         key={u.email}

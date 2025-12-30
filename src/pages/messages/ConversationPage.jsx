@@ -6,7 +6,7 @@ function ConversationPage() {
     const { userEmail } = useParams();
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState("");
-    const token = localStorage.getItem("token");
+
 
 
 
