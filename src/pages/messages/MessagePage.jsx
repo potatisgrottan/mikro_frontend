@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "react-oidc-context"; // <--- Hook
+import { useAuth } from "react-oidc-context";
 import { messageApi } from "../../api";
 
 function MessagesPage() {
     const auth = useAuth();
-    // Vi hämtar e-posten direkt här
     const userEmail = auth.user?.profile?.email;
+
+    // --- HÄR VAR FELET: Vi måste skapa variabeln token ---
+    const token = auth.user?.access_token;
+    // ----------------------------------------------------
 
     const navigate = useNavigate();
 
@@ -14,26 +17,29 @@ function MessagesPage() {
     const [availableUsers, setAvailableUsers] = useState([]);
 
     useEffect(() => {
-        if (!userEmail) return;
+        if (!userEmail || !token) return;
 
         messageApi.get("/users/available-to-message", {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(res => setAvailableUsers(res.data))
             .catch(() => console.log("Could not load users"));
+
     }, [userEmail, token]);
 
     useEffect(() => {
-        if (!userEmail) return;
+        if (!userEmail || !token) return;
 
-        messageApi.get("/all")
+        messageApi.get("/all", {
+            headers: { Authorization: `Bearer ${token}` }
+        })
             .then(res => {
-                // Skicka med userEmail till grupperingsfunktionen
                 const grouped = groupByOtherUser(res.data, userEmail);
                 setConversations(Object.values(grouped));
             })
             .catch(err => console.log(err));
-    }, [userEmail, headers]);
+
+    }, [userEmail, token]); // <--- HÄR VAR FELET: Du hade 'headers' kvar här, jag bytte till 'token'
 
 
     const goToConversation = (otherUserEmail) => {
@@ -57,7 +63,6 @@ function MessagesPage() {
 
             <h3>Start New</h3>
             {availableUsers
-
                 .filter(u => u.email !== userEmail)
                 .map(u => (
                     <div

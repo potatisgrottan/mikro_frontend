@@ -1,7 +1,7 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"; // <--- Lade till Navigate
 import LoginPage from "./pages/LoginPage";
-//import RegisterPage from "./pages/RegisterPage"; behövs ej när vi har keycloak
+// import RegisterPage from "./pages/RegisterPage";  <--- Vi tog bort denna import
 import PatientListPage from "./pages/PatientListPage";
 import PatientDetailPage from "./pages/PatientDetailPage";
 import MessagePage from "./pages/messages/MessagePage";
@@ -20,7 +20,10 @@ function App() {
                 <Routes>
                     {/* Public */}
                     <Route path="/" element={<HomePage />} />
-                    <Route path="/register" element={<RegisterPage />} />
+
+                    {/* ÄNDRING HÄR: Register skickar nu till login istället för att krascha */}
+                    <Route path="/register" element={<Navigate to="/login" />} />
+
                     <Route path="/login" element={<LoginPage />} />
 
                     {/* Private routes */}
