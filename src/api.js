@@ -7,9 +7,9 @@ const JOURNAL_URL = "https://journal-servicea.app.cloud.cbh.kth.se/api";
 
 const MESSAGE_URL = "https://message-servicea.app.cloud.cbh.kth.se/api/messages";
 
-const IMAGE_URL = "https://image-servicea.app.cloud.cbh.kth.se";
-
 const SEARCH_URL = "https://search-servicea.app.cloud.cbh.kth.se/api/search";
+
+const IMAGE_URL = "https://image-servicea.app.cloud.cbh.kth.se";
 
 // Hjälpfunktion för att hämta token från OIDC-lagringen
 function getAccessToken() {
@@ -39,4 +39,4 @@ export const authApi = createClient(AUTH_URL);
 export const journalApi = createClient(JOURNAL_URL);
 export const messageApi = createClient(MESSAGE_URL);
 export const searchApi = createClient(SEARCH_URL);
-export const imageApi = createClient("http://localhost:3001");
+export const imageApi = createClient(IMAGE_URL);

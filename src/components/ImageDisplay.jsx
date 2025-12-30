@@ -12,7 +12,7 @@ function ImageDisplay({ imageId }) {
         <div style={{ marginTop: '10px' }}>
             <img 
                 src={imageUrl} 
-                alt={`Observation Image ${imageId}`} 
+                alt={`Observation ${imageId}`}
                 style={{ maxWidth: '100%', maxHeight: '200px', border: '1px solid #333' }} 
             />
         </div>
