@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+//import RegisterPage from "./pages/RegisterPage"; behövs ej när vi har keycloak
 import PatientListPage from "./pages/PatientListPage";
 import PatientDetailPage from "./pages/PatientDetailPage";
 import MessagePage from "./pages/messages/MessagePage";
