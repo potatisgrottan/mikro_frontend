@@ -1,3 +1,4 @@
+// src/api.js
 import axios from "axios";
 import { User } from "oidc-client-ts";
 
@@ -24,10 +25,9 @@ function createClient(baseURL) {
     const client = axios.create({ baseURL });
 
     client.interceptors.request.use((config) => {
-        const token = getAccessToken();
+        const token = localStorage.getItem("token");
         if (token) {
-            // BYT TILL BEARER TOKEN
-            config.headers.Authorization = `Bearer ${token}`;
+            config.headers.Authorization = `Basic ${token}`;
         }
         return config;
     });
