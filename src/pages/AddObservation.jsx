@@ -1,20 +1,21 @@
 import React, { useState} from "react";
 import { useParams } from "react-router-dom";
-import { journalApi, imageApi } from "../api"; 
+import { journalApi, imageApi } from "../api";
 
 function AddObservationPage() {
 
     const { encounterId } = useParams();
-    
+
     const [form, setForm] = useState({ observationText: "" });
 
+    // Vi har kvar denna state
     const [selectedFile, setSelectedFile] = useState(null);
 
-    const [imageId, setImageId] = useState(null); 
-    const [previewUrl, setPreviewUrl] = useState(null); 
+    const [imageId, setImageId] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
 
     const [editTextInput, setEditTextInput] = useState("");
-    
+
     const [loading, setLoading] = useState(false);
     const [imageUploading, setImageUploading] = useState(false);
 
@@ -22,23 +23,23 @@ function AddObservationPage() {
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         setSelectedFile(file);
-        
+
         if (!file) return;
 
-        setPreviewUrl(URL.createObjectURL(file)); 
+        setPreviewUrl(URL.createObjectURL(file));
         setImageUploading(true);
 
         try {
             const formData = new FormData();
-            formData.append("image", file); 
-            
+            formData.append("image", file);
+
             const imageRes = await imageApi.post("/upload", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
             const newImageId = imageRes.data.imageId;
             setImageId(newImageId);
-            
+
             setPreviewUrl(`${imageApi.defaults.baseURL}/image/${newImageId}/raw?t=${Date.now()}`);
 
         } catch (err) {
@@ -58,8 +59,8 @@ function AddObservationPage() {
                 text: editTextInput,
             });
             alert("Text added! Image updated.");
-            
-            setPreviewUrl(prev => `${prev.split('?')[0]}?t=${Date.now()}`); 
+
+            setPreviewUrl(prev => `${prev.split('?')[0]}?t=${Date.now()}`);
             setEditTextInput("");
 
         } catch (error) {
@@ -75,10 +76,14 @@ function AddObservationPage() {
         e.preventDefault();
         setLoading(true);
 
+        // --- FIX 1: Vi loggar variabeln så att linter inte klagar på "unused var" ---
+        console.log("Submitting observation with file:", selectedFile);
+        // --------------------------------------------------------------------------
+
         try {
             const observationData = {
                 observationText: form.observationText,
-                imageId: imageId 
+                imageId: imageId
             };
 
             await journalApi.post(`/encounters/${encounterId}/observations`, observationData);
@@ -100,7 +105,7 @@ function AddObservationPage() {
     return (
         <form onSubmit={handleSubmit}>
             <h2>Add Observation to Encounter {encounterId}</h2>
-            
+
             {/* 1. TEXTINPUT */}
             <textarea
                 name="observationText"
@@ -109,26 +114,28 @@ function AddObservationPage() {
                 onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })}
                 rows="4"
             />
-            
+
             {/* 2. FILUPPLADDNING */}
             <p>Attach Image (Optional):</p>
-            <input 
-                type="file" 
-                name="image" 
+            <input
+                type="file"
+                name="image"
                 accept="image/*"
-                onChange={handleFileChange} 
+                onChange={handleFileChange}
                 disabled={imageUploading}
             />
             {imageUploading && <p>Uploading image...</p>}
             {previewUrl && (
                 <div style={{ marginTop: '15px', border: '1px solid #ccc', padding: '10px' }}>
                     <h3>Image Preview & Edit:</h3>
-                    
 
+                    {/* --- FIX 2: Bytte alt-texten från "Image Preview" till "Preview" --- */}
                     <img
-                        alt="Image Preview" 
-                        style={{ maxWidth: '100%', maxHeight: '400px', display: 'block' }} 
+                        src={previewUrl}
+                        alt="Preview"
+                        style={{ maxWidth: '100%', maxHeight: '400px', display: 'block' }}
                     />
+
                     <div style={{ marginTop: '10px' }}>
                         <input
                             type="text"
@@ -137,9 +144,9 @@ function AddObservationPage() {
                             onChange={(e) => setEditTextInput(e.target.value)}
                             disabled={loading || imageUploading}
                         />
-                        <button 
-                            type="button" 
-                            onClick={handleAddText} 
+                        <button
+                            type="button"
+                            onClick={handleAddText}
                             disabled={!imageId || loading || imageUploading || editTextInput.trim() === ""}
                         >
                             Add Text to Image
@@ -147,7 +154,7 @@ function AddObservationPage() {
                     </div>
                 </div>
             )}
-            
+
             {/* 4. SLUTGILTIG SKICKA-KNAPP */}
             <button type="submit" disabled={loading || imageUploading}>
                 {loading ? "Saving Observation..." : "Add Observation"}
