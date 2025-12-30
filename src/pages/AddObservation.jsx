@@ -3,9 +3,12 @@ import { useParams } from "react-router-dom";
 import { journalApi, imageApi } from "../api"; 
 
 function AddObservationPage() {
+
     const { encounterId } = useParams();
     
-    const [form, setForm] = useState({ observationText: "" }); 
+    const [form, setForm] = useState({ observationText: "" });
+
+    const [selectedFile, setSelectedFile] = useState(null);
 
     const [imageId, setImageId] = useState(null); 
     const [previewUrl, setPreviewUrl] = useState(null); 

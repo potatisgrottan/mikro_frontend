@@ -16,10 +16,12 @@ function MessagesPage() {
     useEffect(() => {
         if (!userEmail) return;
 
-        messageApi.get("/users/available-to-message")
+        messageApi.get("/users/available-to-message", {
+            headers: { Authorization: `Bearer ${token}` }
+        })
             .then(res => setAvailableUsers(res.data))
             .catch(() => console.log("Could not load users"));
-    }, [userEmail, headers]);
+    }, [userEmail, token]);
 
     useEffect(() => {
         if (!userEmail) return;
@@ -55,7 +57,7 @@ function MessagesPage() {
 
             <h3>Start New</h3>
             {availableUsers
-                
+
                 .filter(u => u.email !== userEmail)
                 .map(u => (
                     <div
