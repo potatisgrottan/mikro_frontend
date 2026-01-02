@@ -12,7 +12,7 @@ const Layout = ({ children }) => {
             const syncToAuthService = async () => {
                 try {
                     // Vi skickar en tom body {}, men skickar med token i headern
-                    await authApi.post("/auth/sync", {}, {
+                    await authApi.post("/sync", {}, {
                         headers: { Authorization: `Bearer ${auth.user.access_token}` }
                     });
                     console.log("User synced to AuthDB successfully");
