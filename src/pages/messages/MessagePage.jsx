@@ -16,31 +16,38 @@ function MessagesPage() {
     const [conversations, setConversations] = useState([]);
     const [availableUsers, setAvailableUsers] = useState([]);
 
-    useEffect(() => {
-        if (!userEmail || !token) return;
+// I useEffect för tillgängliga användare (Start New)
+useEffect(() => {
+    if (!userEmail || !token) return;
 
-        messageApi.get("/users/available-to-message", {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-            .then(res => setAvailableUsers(res.data))
-            .catch(() => console.log("Could not load users"));
+    messageApi.get("/users/available-to-message", {
+        headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(res => {
+        // FILTRERING HÄR:
+        const filteredUsers = res.data.filter(u => u.email !== "andre1@gmail.com");
+        setAvailableUsers(filteredUsers);
+    })
+    .catch(() => console.log("Could not load users"));
+}, [userEmail, token]);
 
-    }, [userEmail, token]);
+// I useEffect för existerande konversationer (Your Conversations)
+useEffect(() => {
+    if (!userEmail || !token) return;
 
-    useEffect(() => {
-        if (!userEmail || !token) return;
-
-        messageApi.get("/all", {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-            .then(res => {
-                const grouped = groupByOtherUser(res.data, userEmail);
-                setConversations(Object.values(grouped));
-            })
-            .catch(err => console.log(err));
-
-    }, [userEmail, token]); // <--- HÄR VAR FELET: Du hade 'headers' kvar här, jag bytte till 'token'
-
+    messageApi.get("/all", {
+        headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(res => {
+        const grouped = groupByOtherUser(res.data, userEmail);
+        // FILTRERING HÄR:
+        const filteredConversations = Object.values(grouped).filter(
+            conv => conv.otherUserEmail !== "andre1@gmail.com"
+        );
+        setConversations(filteredConversations);
+    })
+    .catch(err => console.log(err));
+}, [userEmail, token]);
 
     const goToConversation = (otherUserEmail) => {
         navigate(`/messages/${otherUserEmail}`);
